@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Singapore Wushu Directory</title>
+    <meta
+      name="description"
+      content="A trusted Singapore guide for wushu clubs, classes, suppliers, events, and community listings."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Singapore Wushu Directory home">
+        <span class="brand-mark">武</span>
+        <span>Singapore Wushu Directory</span>
+      </a>
+
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#directory">Directory</a>
+        <a href="#events">Events</a>
+        <a href="#submit">Submit</a>
+        <a href="#about">About</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-label="Singapore Wushu Directory introduction">
+        <img
+          class="hero-image"
+          src="assets/images/wushu-training-hero.png"
+          alt="Wushu practitioners training in a bright indoor sports hall"
+        />
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Trusted Singapore wushu guide</p>
+          <h1>Find verified wushu clubs, classes, shops, and events.</h1>
+          <p>
+            A calm, curated directory for training options, community providers,
+            equipment suppliers, and upcoming wushu activities across Singapore.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#directory">Browse Listings</a>
+            <a class="button secondary" href="#submit">Recommend a Listing</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="trust-strip" aria-label="Directory principles">
+        <div>
+          <strong>Reviewed Sources</strong>
+          <span>Each listing can include a source link and checked date.</span>
+        </div>
+        <div>
+          <strong>Singapore Focused</strong>
+          <span>Built around local clubs, classes, shops, and events.</span>
+        </div>
+        <div>
+          <strong>Clear Details</strong>
+          <span>Area, venue, contact, and source details are easy to compare.</span>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Directory summary">
+        <div>
+          <strong id="club-count">0</strong>
+          <span>Clubs and classes</span>
+        </div>
+        <div>
+          <strong id="shop-count">0</strong>
+          <span>Shops and suppliers</span>
+        </div>
+        <div>
+          <strong id="event-count">0</strong>
+          <span>Upcoming events</span>
+        </div>
+      </section>
+
+      <section class="section" id="directory">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Directory</p>
+            <h2>Explore the Directory</h2>
+          </div>
+          <label class="search-label" for="search">
+            <span>Search</span>
+            <input
+              id="search"
+              type="search"
+              placeholder="Search by name, area, or keyword"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+
+        <div class="filters" aria-label="Listing filters">
+          <button class="filter is-active" type="button" data-filter="all">All</button>
+          <button class="filter" type="button" data-filter="club">Clubs</button>
+          <button class="filter" type="button" data-filter="class">Classes</button>
+          <button class="filter" type="button" data-filter="shop">Shops</button>
+          <button class="filter" type="button" data-filter="event">Events</button>
+        </div>
+
+        <div class="cards" id="listing-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="section split" id="events">
+        <div>
+          <p class="eyebrow">Events</p>
+          <h2>Competitions, workshops, and open sessions</h2>
+          <p>
+            Feature upcoming activities with the same polished listing format.
+            Keep dates, venues, organisers, and registration links clear so
+            visitors can act with confidence.
+          </p>
+        </div>
+        <div class="note">
+          <h3>Trusted event details</h3>
+          <p>
+            Include the event date, venue, organiser, registration link, source
+            link, and the date it was last checked.
+          </p>
+        </div>
+      </section>
+
+      <section class="section split" id="submit">
+        <div>
+          <p class="eyebrow">Community recommendations</p>
+          <h2>Help improve the directory</h2>
+          <p>
+            Invite clubs, coaches, suppliers, and organisers to recommend a
+            listing. Review each recommendation before it appears publicly.
+          </p>
+          <a class="button primary" href="https://forms.google.com" target="_blank" rel="noreferrer">
+            Recommend a Listing
+          </a>
+        </div>
+        <div class="note">
+          <h3>Quality checklist</h3>
+          <p>
+            Confirm the provider name, location, contact details, source URL,
+            listing type, and whether the class or event is currently active.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="about">
+        <p class="eyebrow">About</p>
+        <h2>A refined directory with simple management</h2>
+        <p class="wide-text">
+          The directory is designed to make wushu discovery feel credible,
+          focused, and respectful. Visitors can compare options quickly while
+          still seeing where each listing came from.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Singapore Wushu Directory</p>
+      <p>Curated community listings for Singapore wushu.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

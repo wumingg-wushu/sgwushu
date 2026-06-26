@@ -1,0 +1,5 @@
+name,type,area,venue,contact,description,tags,sourceUrl,lastVerified
+Example Wushu Club,club,Central,Community sports hall,hello@example.com,Replace this with a real verified provider,"modern wushu; youth; adult",https://example.com,2026-06-26
+Beginner Wushu Class,class,East,Community club studio,Replace with phone or email,Include age group level day and trainer details,"beginner; children; weekly class",https://example.com,2026-06-26
+Training Equipment Supplier,shop,Online,Online store,Replace with website or email,Uniforms shoes weapons and training gear,"equipment; uniforms; weapons",https://example.com,2026-06-26
+Open Wushu Workshop,event,West,Sports centre hall,Replace with organiser contact,Add date organiser registration link and source,"workshop; open house; training",https://example.com,2026-06-26

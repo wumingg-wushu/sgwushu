@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Example Wushu Club",
+    "type": "club",
+    "area": "Central",
+    "venue": "Community sports hall",
+    "contact": "hello@example.com",
+    "description": "Sample listing for a club. Replace this with a real provider after you verify the details.",
+    "tags": ["modern wushu", "youth", "adult"],
+    "sourceUrl": "https://example.com",
+    "lastVerified": "2026-06-26"
+  },
+  {
+    "name": "Beginner Wushu Class",
+    "type": "class",
+    "area": "East",
+    "venue": "Community club studio",
+    "contact": "Replace with phone or email",
+    "description": "Sample weekly class listing. Include age group, level, day, and trainer details when available.",
+    "tags": ["beginner", "children", "weekly class"],
+    "sourceUrl": "https://example.com",
+    "lastVerified": "2026-06-26"
+  },
+  {
+    "name": "Training Equipment Supplier",
+    "type": "shop",
+    "area": "Online",
+    "venue": "Online store",
+    "contact": "Replace with website or email",
+    "description": "Sample supplier listing for uniforms, shoes, weapons, and training gear.",
+    "tags": ["equipment", "uniforms", "weapons"],
+    "sourceUrl": "https://example.com",
+    "lastVerified": "2026-06-26"
+  },
+  {
+    "name": "Open Wushu Workshop",
+    "type": "event",
+    "area": "West",
+    "venue": "Sports centre hall",
+    "contact": "Replace with organiser contact",
+    "description": "Sample event listing. Add date, organiser, registration link, and source once confirmed.",
+    "tags": ["workshop", "open house", "training"],
+    "sourceUrl": "https://example.com",
+    "lastVerified": "2026-06-26"
+  }
+]
