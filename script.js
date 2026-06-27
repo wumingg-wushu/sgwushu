@@ -218,18 +218,58 @@ function getClubName(row) {
   return row.club_name || (row.organization_type === "club" ? row.organization_name : "");
 }
 
+function smartTitleCase(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace(/\bCc\b/g, "CC")
+    .replace(/\bRc\b/g, "RC")
+    .replace(/\bCsn\b/g, "CSN");
+}
+
+function canonicalEntityName(type, name) {
+  let value = String(name || "").replace(/\s+/g, " ").trim();
+  if (!value) return "";
+
+  value = value
+    .replace(/\bTeam\s+[A-Z0-9]+\b/gi, "")
+    .replace(/\bGroup\s+[A-Z0-9]+\b/gi, "")
+    .replace(/\s+队\b/g, "")
+    .replace(/\b队\s+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (type === "school") {
+    value = value
+      .replace(/\bPr\s+Sch\b/gi, "Primary School")
+      .replace(/\bPri\s+Sch\b/gi, "Primary School")
+      .replace(/\bSec\s+Sch\b/gi, "Secondary School");
+
+    const lowered = value.toLowerCase();
+    if (lowered.includes("nan chiau primary")) return "Nan Chiau Primary School";
+    if (lowered.includes("nan chiau high")) return "Nan Chiau High School";
+  }
+
+  if (value === value.toUpperCase() && /[A-Z]/.test(value)) {
+    return smartTitleCase(value);
+  }
+
+  return value;
+}
+
 function profileKey(type, name) {
-  return `${type}:${normalise(name)}`;
+  return `${type}:${normalise(canonicalEntityName(type, name))}`;
 }
 
 function addProfile(profiles, type, name, row) {
-  if (!name) return;
-  const key = profileKey(type, name);
+  const displayName = canonicalEntityName(type, name);
+  if (!displayName) return;
+  const key = profileKey(type, displayName);
   if (!profiles.has(key)) {
     profiles.set(key, {
       key,
       type,
-      name,
+      name: displayName,
       rows: [],
       schools: new Set(),
       clubs: new Set(),
@@ -239,8 +279,8 @@ function addProfile(profiles, type, name, row) {
 
   const profile = profiles.get(key);
   profile.rows.push(row);
-  if (getSchoolName(row)) profile.schools.add(getSchoolName(row));
-  if (getClubName(row)) profile.clubs.add(getClubName(row));
+  if (getSchoolName(row)) profile.schools.add(canonicalEntityName("school", getSchoolName(row)));
+  if (getClubName(row)) profile.clubs.add(canonicalEntityName("club", getClubName(row)));
   if (row.competition_name) profile.competitions.add(row.competition_name);
 }
 
@@ -396,8 +436,8 @@ function renderProfileDetails(profile) {
     }
 
     if (profile.type === "athlete") {
-      addMetaItem(meta, "School", getSchoolName(row));
-      addMetaItem(meta, "Club", getClubName(row));
+      addMetaItem(meta, "School", canonicalEntityName("school", getSchoolName(row)));
+      addMetaItem(meta, "Club", canonicalEntityName("club", getClubName(row)));
     }
 
     card.append(title);
