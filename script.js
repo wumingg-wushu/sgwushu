@@ -16,6 +16,8 @@ let listings = [];
 let activeFilter = "all";
 let activeResultFilter = "all";
 let searchTimer;
+let currentAchievementRows = [];
+let selectedProfile = null;
 
 const typeLabels = {
   club: "Club",
@@ -191,20 +193,6 @@ function resultMatchesActiveFilter(row) {
   return true;
 }
 
-function getPrimaryResultName(row) {
-  if (activeResultFilter === "school") {
-    return row.school_name || row.organization_name || "School achievement";
-  }
-  if (activeResultFilter === "club") {
-    return row.club_name || row.organization_name || "Club achievement";
-  }
-  return row.athlete_name || row.team_name || row.school_name || row.club_name || row.organization_name || "Achievement";
-}
-
-function getRepresentativeName(row) {
-  return row.athlete_name || row.team_name || "";
-}
-
 function getAchievementLine(row) {
   const rank = row.rank_number || row.rank_text;
   const rankText = rank ? `Rank ${rank}` : "";
@@ -222,40 +210,176 @@ function addMetaItem(list, label, value, className = "") {
   list.append(item);
 }
 
-function renderAchievementRows(rows) {
+function getSchoolName(row) {
+  return row.school_name || (row.organization_type === "school" ? row.organization_name : "");
+}
+
+function getClubName(row) {
+  return row.club_name || (row.organization_type === "club" ? row.organization_name : "");
+}
+
+function profileKey(type, name) {
+  return `${type}:${normalise(name)}`;
+}
+
+function addProfile(profiles, type, name, row) {
+  if (!name) return;
+  const key = profileKey(type, name);
+  if (!profiles.has(key)) {
+    profiles.set(key, {
+      key,
+      type,
+      name,
+      rows: [],
+      schools: new Set(),
+      clubs: new Set(),
+      competitions: new Set(),
+    });
+  }
+
+  const profile = profiles.get(key);
+  profile.rows.push(row);
+  if (getSchoolName(row)) profile.schools.add(getSchoolName(row));
+  if (getClubName(row)) profile.clubs.add(getClubName(row));
+  if (row.competition_name) profile.competitions.add(row.competition_name);
+}
+
+function buildProfiles(rows, term) {
+  const profiles = new Map();
+  const loweredTerm = normalise(term);
+
+  rows.forEach((row) => {
+    const athlete = row.athlete_name || row.team_name;
+    const school = getSchoolName(row);
+    const club = getClubName(row);
+
+    if (activeResultFilter === "athlete") {
+      addProfile(profiles, "athlete", athlete, row);
+    } else if (activeResultFilter === "school") {
+      addProfile(profiles, "school", school, row);
+    } else if (activeResultFilter === "club") {
+      addProfile(profiles, "club", club, row);
+    } else {
+      if (normalise(athlete).includes(loweredTerm)) addProfile(profiles, "athlete", athlete, row);
+      if (normalise(school).includes(loweredTerm)) addProfile(profiles, "school", school, row);
+      if (normalise(club).includes(loweredTerm)) addProfile(profiles, "club", club, row);
+    }
+  });
+
+  return Array.from(profiles.values()).sort((a, b) => {
+    if (a.type !== b.type) return a.type.localeCompare(b.type);
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function typeLabel(type) {
+  return {
+    athlete: "Athlete",
+    school: "School",
+    club: "Club",
+  }[type] || "Profile";
+}
+
+function renderProfileMatches(rows, term) {
   achievementResults.innerHTML = "";
 
   const visibleRows = rows.filter(resultMatchesActiveFilter);
+  const profiles = buildProfiles(visibleRows, term);
 
-  if (!visibleRows.length) {
+  if (!profiles.length) {
     const empty = document.createElement("p");
     empty.className = "empty";
-    empty.textContent =
-      "No achievement rows found yet. Upload full result rows into raw_result_imports to enable this search.";
+    empty.textContent = "No matching athletes, schools, or clubs found.";
     achievementResults.append(empty);
     return;
   }
 
-  visibleRows.forEach((row) => {
+  profiles.forEach((profile) => {
+    const button = document.createElement("button");
+    button.className = "profile-card";
+    button.type = "button";
+
+    const title = document.createElement("h4");
+    title.textContent = profile.name;
+
+    const label = document.createElement("span");
+    label.className = `profile-type profile-${profile.type}`;
+    label.textContent = typeLabel(profile.type);
+
+    const summary = document.createElement("p");
+    summary.textContent = `${profile.rows.length} achievement${profile.rows.length === 1 ? "" : "s"} across ${profile.competitions.size || 1} competition${profile.competitions.size === 1 ? "" : "s"}`;
+
+    const meta = document.createElement("ul");
+    meta.className = "profile-meta";
+
+    if (profile.type === "athlete") {
+      addMetaItem(meta, "Affiliations", [...profile.schools, ...profile.clubs].filter(Boolean).join(", ") || "Not recorded");
+    } else {
+      const athletes = new Set(profile.rows.map((row) => row.athlete_name).filter(Boolean));
+      addMetaItem(meta, "Athletes", athletes.size);
+    }
+
+    button.append(label, title, summary, meta);
+    button.addEventListener("click", () => {
+      selectedProfile = profile;
+      renderProfileDetails(profile);
+    });
+
+    achievementResults.append(button);
+  });
+}
+
+function renderProfileDetails(profile) {
+  achievementResults.innerHTML = "";
+
+  const panel = document.createElement("article");
+  panel.className = "profile-detail";
+
+  const back = document.createElement("button");
+  back.className = "profile-back";
+  back.type = "button";
+  back.textContent = "Back to matches";
+  back.addEventListener("click", () => {
+    selectedProfile = null;
+    renderProfileMatches(currentAchievementRows, cleanSearchTerm(resultsSearchInput.value));
+  });
+
+  const label = document.createElement("span");
+  label.className = `profile-type profile-${profile.type}`;
+  label.textContent = typeLabel(profile.type);
+
+  const title = document.createElement("h3");
+  title.textContent = profile.name;
+
+  const summary = document.createElement("p");
+  summary.textContent = `${profile.rows.length} achievement${profile.rows.length === 1 ? "" : "s"} recorded.`;
+
+  const affiliationList = document.createElement("ul");
+  affiliationList.className = "result-meta affiliations";
+
+  if (profile.type === "athlete") {
+    const affiliations = [...profile.schools, ...profile.clubs].filter(Boolean);
+    addMetaItem(affiliationList, "Affiliations", affiliations.join(", ") || "Not recorded");
+  } else {
+    const athletes = new Set(profile.rows.map((row) => row.athlete_name).filter(Boolean));
+    addMetaItem(affiliationList, "Represented by", `${athletes.size} athlete${athletes.size === 1 ? "" : "s"}`);
+  }
+
+  panel.append(back, label, title, summary, affiliationList);
+  achievementResults.append(panel);
+
+  const rows = [...profile.rows].sort((a, b) => {
+    const yearA = Number(a.competition_year || 0);
+    const yearB = Number(b.competition_year || 0);
+    return yearB - yearA;
+  });
+
+  rows.forEach((row) => {
     const card = document.createElement("article");
     card.className = "result-item";
 
     const title = document.createElement("h4");
-    title.textContent = getPrimaryResultName(row);
-
-    const event = document.createElement("p");
-    event.textContent = row.event_name || "Event not recorded";
-
-    const representative = document.createElement("p");
-    representative.className = "representative";
-    const representativeName = getRepresentativeName(row);
-    if (activeResultFilter === "school" && representativeName) {
-      representative.textContent = `Represented by: ${representativeName}`;
-    } else if (activeResultFilter === "club" && representativeName) {
-      representative.textContent = `Represented by: ${representativeName}`;
-    } else {
-      representative.textContent = "";
-    }
+    title.textContent = row.event_name || "Event not recorded";
 
     const achievementLine = document.createElement("p");
     achievementLine.className = "achievement-line";
@@ -266,12 +390,17 @@ function renderAchievementRows(rows) {
 
     addMetaItem(meta, "Competition", row.competition_name);
     addMetaItem(meta, "Year", row.competition_year);
-    addMetaItem(meta, "School", row.school_name);
-    addMetaItem(meta, "Club", row.club_name);
-    addMetaItem(meta, "Organisation", row.organization_name);
 
-    card.append(title, event);
-    if (representative.textContent) card.append(representative);
+    if (profile.type !== "athlete") {
+      addMetaItem(meta, "Athlete", row.athlete_name || row.team_name);
+    }
+
+    if (profile.type === "athlete") {
+      addMetaItem(meta, "School", getSchoolName(row));
+      addMetaItem(meta, "Club", getClubName(row));
+    }
+
+    card.append(title);
     if (achievementLine.textContent) card.append(achievementLine);
     card.append(meta);
 
@@ -291,7 +420,7 @@ function renderAchievementRows(rows) {
 
 function buildAchievementSearchParams(term) {
   const wildcard = `*${term}*`;
-  const resultLimit = activeResultFilter === "school" || activeResultFilter === "club" ? "500" : "120";
+  const resultLimit = activeResultFilter === "school" || activeResultFilter === "club" ? "800" : "500";
   const params = {
     select: resultColumns,
     limit: resultLimit,
@@ -322,7 +451,7 @@ async function runAchievementSearch() {
   if (!hasSupabaseConfig()) {
     databaseStatus.textContent =
       "Supabase is not connected yet. Paste your public Supabase URL and anon key into supabase-config.js.";
-    renderAchievementRows([]);
+    renderProfileMatches([], "");
     return;
   }
 
@@ -340,15 +469,19 @@ async function runAchievementSearch() {
 
   try {
     const rows = await fetchSupabaseRows("raw_result_imports", buildAchievementSearchParams(term));
-    const label = activeResultFilter === "school" ? "school achievement rows" : "matching achievement rows";
+    currentAchievementRows = rows;
+    selectedProfile = null;
+    const profiles = buildProfiles(rows.filter(resultMatchesActiveFilter), term);
     databaseStatus.textContent = rows.length
-      ? `Showing ${rows.length} ${label}.`
-      : "No matching achievement rows found.";
-    renderAchievementRows(rows);
+      ? `Showing ${profiles.length} matching profile${profiles.length === 1 ? "" : "s"}. Select one to view achievements.`
+      : "No matching profiles found.";
+    renderProfileMatches(rows, term);
   } catch (error) {
     databaseStatus.textContent =
       "Achievement search could not load. Check your Supabase public URL, anon key, and table permissions.";
-    renderAchievementRows([]);
+    currentAchievementRows = [];
+    selectedProfile = null;
+    renderProfileMatches([], term);
   }
 }
 

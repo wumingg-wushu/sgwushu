@@ -193,6 +193,15 @@ a {
   background: rgba(255, 255, 255, 0.12);
 }
 
+.button.secondary.dark {
+  border-color: rgba(143, 29, 29, 0.24);
+  color: var(--burgundy);
+}
+
+.button.secondary.dark:hover {
+  background: rgba(143, 29, 29, 0.08);
+}
+
 /* Trust and Stats */
 .trust-strip,
 .stats {
@@ -350,6 +359,116 @@ a {
   gap: 12px;
 }
 
+.profile-card {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 18px;
+  border: 1px solid rgba(200, 164, 93, 0.32);
+  border-radius: 8px;
+  background: var(--white);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 12px 30px rgba(29, 24, 18, 0.06);
+  font: inherit;
+}
+
+.profile-card:hover,
+.profile-card:focus-visible {
+  border-color: var(--burgundy);
+  outline: 3px solid rgba(143, 29, 29, 0.12);
+}
+
+.profile-card h4,
+.profile-detail h3 {
+  margin: 0;
+  color: var(--ink);
+}
+
+.profile-card h4 {
+  font-size: 1.08rem;
+  line-height: 1.22;
+}
+
+.profile-card p,
+.profile-detail p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.profile-type {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 26px;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: #60440f;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.profile-athlete {
+  background: rgba(143, 29, 29, 0.1);
+  color: var(--burgundy);
+}
+
+.profile-school {
+  background: rgba(47, 111, 94, 0.12);
+  color: var(--jade);
+}
+
+.profile-club {
+  background: var(--gold-soft);
+  color: #60440f;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-meta li {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.profile-detail {
+  display: grid;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid rgba(143, 29, 29, 0.18);
+  border-left: 5px solid var(--burgundy);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.profile-back {
+  width: fit-content;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: var(--ivory);
+  color: var(--charcoal);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+}
+
+.profile-back:hover {
+  border-color: var(--burgundy);
+  color: var(--burgundy);
+}
+
 .result-item {
   display: grid;
   gap: 8px;
@@ -400,6 +519,12 @@ a {
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--ivory);
+}
+
+.result-meta.affiliations li {
+  border-color: rgba(200, 164, 93, 0.48);
+  background: rgba(239, 226, 196, 0.42);
+  color: var(--charcoal);
 }
 
 .medal {
