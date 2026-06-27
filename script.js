@@ -183,12 +183,12 @@ function renderListings() {
 }
 
 function resultMatchesActiveFilter(row) {
-  if (activeResultFilter === "athlete") return Boolean(row.athlete_name);
+  if (activeResultFilter === "athlete") return Boolean(getAthleteName(row));
   if (activeResultFilter === "school") {
-    return Boolean(row.school_name) || row.organization_type === "school";
+    return getOrganizationProfile(row).type === "school";
   }
   if (activeResultFilter === "club") {
-    return Boolean(row.club_name) || row.organization_type === "club";
+    return getOrganizationProfile(row).type === "club";
   }
   return true;
 }
@@ -218,6 +218,43 @@ function getClubName(row) {
   return row.club_name || (row.organization_type === "club" ? row.organization_name : "");
 }
 
+function inferOrganizationType(name) {
+  const lowered = normalise(name);
+  if (!lowered) return "";
+  const schoolWords = [
+    "school",
+    "primary",
+    "secondary",
+    "junior college",
+    "institution",
+    "polytechnic",
+    "university",
+    "madrasah",
+  ];
+  if (schoolWords.some((word) => lowered.includes(word))) return "school";
+  return "club";
+}
+
+function getOrganizationProfile(row) {
+  const school = getSchoolName(row);
+  const club = getClubName(row);
+  if (school) return { type: "school", name: school };
+  if (club) return { type: "club", name: club };
+  if (row.organization_name) {
+    return {
+      type: inferOrganizationType(row.organization_name),
+      name: row.organization_name,
+    };
+  }
+  return { type: "", name: "" };
+}
+
+function getAthleteName(row) {
+  const athlete = String(row.athlete_name || "").replace(/\s+/g, " ").trim();
+  if (!athlete || athlete === "队") return "";
+  return athlete;
+}
+
 function smartTitleCase(value) {
   return String(value || "")
     .toLowerCase()
@@ -234,8 +271,7 @@ function canonicalEntityName(type, name) {
   value = value
     .replace(/\bTeam\s+[A-Z0-9]+\b/gi, "")
     .replace(/\bGroup\s+[A-Z0-9]+\b/gi, "")
-    .replace(/\s+队\b/g, "")
-    .replace(/\b队\s+/g, "")
+    .replace(/队/g, "")
     .replace(/\s+/g, " ")
     .trim();
 
@@ -289,20 +325,29 @@ function buildProfiles(rows, term) {
   const loweredTerm = normalise(term);
 
   rows.forEach((row) => {
-    const athlete = row.athlete_name || row.team_name;
+    const athlete = getAthleteName(row);
     const school = getSchoolName(row);
     const club = getClubName(row);
+    const organizationProfile = getOrganizationProfile(row);
 
     if (activeResultFilter === "athlete") {
       addProfile(profiles, "athlete", athlete, row);
     } else if (activeResultFilter === "school") {
-      addProfile(profiles, "school", school, row);
+      addProfile(profiles, "school", school || (organizationProfile.type === "school" ? organizationProfile.name : ""), row);
     } else if (activeResultFilter === "club") {
-      addProfile(profiles, "club", club, row);
+      addProfile(profiles, "club", club || (organizationProfile.type === "club" ? organizationProfile.name : ""), row);
     } else {
       if (normalise(athlete).includes(loweredTerm)) addProfile(profiles, "athlete", athlete, row);
       if (normalise(school).includes(loweredTerm)) addProfile(profiles, "school", school, row);
       if (normalise(club).includes(loweredTerm)) addProfile(profiles, "club", club, row);
+      if (
+        organizationProfile.name &&
+        normalise(organizationProfile.name).includes(loweredTerm) &&
+        !school &&
+        !club
+      ) {
+        addProfile(profiles, organizationProfile.type, organizationProfile.name, row);
+      }
     }
   });
 
@@ -355,7 +400,7 @@ function renderProfileMatches(rows, term) {
     if (profile.type === "athlete") {
       addMetaItem(meta, "Affiliations", [...profile.schools, ...profile.clubs].filter(Boolean).join(", ") || "Not recorded");
     } else {
-      const athletes = new Set(profile.rows.map((row) => row.athlete_name).filter(Boolean));
+      const athletes = new Set(profile.rows.map((row) => getAthleteName(row)).filter(Boolean));
       addMetaItem(meta, "Athletes", athletes.size);
     }
 
@@ -401,7 +446,7 @@ function renderProfileDetails(profile) {
     const affiliations = [...profile.schools, ...profile.clubs].filter(Boolean);
     addMetaItem(affiliationList, "Affiliations", affiliations.join(", ") || "Not recorded");
   } else {
-    const athletes = new Set(profile.rows.map((row) => row.athlete_name).filter(Boolean));
+    const athletes = new Set(profile.rows.map((row) => getAthleteName(row)).filter(Boolean));
     addMetaItem(affiliationList, "Represented by", `${athletes.size} athlete${athletes.size === 1 ? "" : "s"}`);
   }
 
@@ -432,7 +477,8 @@ function renderProfileDetails(profile) {
     addMetaItem(meta, "Year", row.competition_year);
 
     if (profile.type !== "athlete") {
-      addMetaItem(meta, "Athlete", row.athlete_name || row.team_name);
+      addMetaItem(meta, "Athlete", getAthleteName(row));
+      if (!getAthleteName(row)) addMetaItem(meta, "Representative", row.team_name || "Team event");
     }
 
     if (profile.type === "athlete") {
