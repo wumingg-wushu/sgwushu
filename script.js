@@ -249,9 +249,24 @@ function getOrganizationProfile(row) {
   return { type: "", name: "" };
 }
 
+function isGroupAchievement(row) {
+  const text = [
+    row.event_name,
+    row.category,
+    row.athlete_name,
+    row.team_name,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return ["group event", "group quanshu", "jiti", "duilian", "集体"].some((marker) =>
+    text.includes(marker)
+  );
+}
+
 function getAthleteName(row) {
   const athlete = String(row.athlete_name || "").replace(/\s+/g, " ").trim();
-  if (!athlete || athlete === "队") return "";
+  if (!athlete || athlete === "队" || isGroupAchievement(row)) return "";
   return athlete;
 }
 
